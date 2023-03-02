@@ -74,6 +74,7 @@ class FigurativeLanguageGenerator:
         print("All adjectives: \n" + str(all_adj) + "\n")
 
         # Get the figurative language terms corresponding to the adjectives
+        self.get_figurative_language_term('complex')
 
         # Replace some words in the story with figurative language terms
 
@@ -98,10 +99,15 @@ class FigurativeLanguageGenerator:
         '''
 
         # Set up the query parameters
+        params = {'q': param}
 
         # Send a GET request to the website with the query parameters
+        response = requests.get(self.url, params=params)
+        # print(response.status_code)
+        # print(response.text)
 
-        # Raise an exception if the response status code is not 200
+        # Raise an exception if the response status code is not 200. response.raise_for_status() will raise an HTTPError if the HTTP request returned an unsuccessful status code.
+        response.raise_for_status()
 
         # Parse the HTML response and extract the table that contains the figurative language terms
 
