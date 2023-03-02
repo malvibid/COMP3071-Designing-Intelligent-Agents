@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 import nltk
 import numpy as np
 import requests
@@ -74,7 +75,9 @@ class FigurativeLanguageGenerator:
         print("All adjectives: \n" + str(all_adj) + "\n")
 
         # Get the figurative language terms corresponding to the adjectives
-        self.get_figurative_language_term('complex')
+        query_params = [tup[0] for tup in all_adj]
+        figurative_language_terms = self.get_figurative_language_terms(
+            query_params)
 
         # Replace some words in the story with figurative language terms
 
@@ -110,10 +113,20 @@ class FigurativeLanguageGenerator:
         response.raise_for_status()
 
         # Parse the HTML response and extract the table that contains the figurative language terms
+        soup_html = BeautifulSoup(response.text, 'html.parser')
 
         # Extract the figurative language terms from the table and return them as a list
+        aTags = soup_html.select(
+            "body > table tr > td:nth-child(2) > table tr:nth-child(2) > td:nth-child(1) table a")
 
-        # return all_figurative
+        all_figurative = []
+        for aTag in aTags:
+            # Getting the text from the <a> tags
+            all_figurative.append(aTag.text)
+
+        # print("Simple Elaborations: \n" + str(all_figurative) + "\n")
+
+        return all_figurative
 
     def get_figurative_language_terms(self, query_params):
         '''
@@ -133,13 +146,18 @@ class FigurativeLanguageGenerator:
         '''
 
         # create an empty dictionary to store the figurative language terms
+        figurative_language_terms = {}
+        print("Query params: \n" + str(query_params) + "\n")
 
         # iterate over each query parameter
-
-        # get the figurative language terms for the current parameter
-
+        for param in query_params:
+            # get the figurative language terms for the current parameter
+            figurative_language_terms[param] = self.get_figurative_language_term(
+                param)
+        print("Figurative language terms: \n" +
+              str(figurative_language_terms) + "\n")
         # return the dictionary of figurative language terms
-        # return figurative_language_terms
+        return figurative_language_terms
 
     def filter_adjectives(self, taggedListOfWords):
         '''
