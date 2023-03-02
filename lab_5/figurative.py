@@ -1,7 +1,8 @@
 import nltk
 import numpy as np
 import requests
-
+# Will need to download the following nltk dataset if running nltk for the first time.
+# nltk.download(['punkt'])
 
 
 class FigurativeLanguageGenerator:
@@ -44,13 +45,12 @@ class FigurativeLanguageGenerator:
 
         """
         # Tokenize the input text
-
+        listOfWords = nltk.word_tokenize(story)
+        print("Tokens: \n" + str(listOfWords) + "\n")
 
         # Perform part-of-speech tagging on the tokenized text
 
-
         # Print the tagged list of words (for debugging purposes)
-
 
         # Return the tagged list of words
         # return taggedListOfWords
@@ -68,9 +68,7 @@ class FigurativeLanguageGenerator:
 
         # Extract all adjectives from the story and get their base forms
 
-
         # Get the figurative language terms corresponding to the adjectives
-
 
         # Replace some words in the story with figurative language terms
 
@@ -78,12 +76,10 @@ class FigurativeLanguageGenerator:
 
         # Keep the original word
 
-
         # Return the updated story as a list of words
         # return new_text
 
     def get_figurative_language_term(self, param):
-
         '''
         This method takes a string as input and queries a website to retrieve a list of figurative
         language terms that are related to the input string. It returns a list of the retrieved terms.
@@ -98,15 +94,11 @@ class FigurativeLanguageGenerator:
 
         # Set up the query parameters
 
-
         # Send a GET request to the website with the query parameters
-
 
         # Raise an exception if the response status code is not 200
 
-
         # Parse the HTML response and extract the table that contains the figurative language terms
-
 
         # Extract the figurative language terms from the table and return them as a list
 
@@ -131,12 +123,9 @@ class FigurativeLanguageGenerator:
 
         # create an empty dictionary to store the figurative language terms
 
-
         # iterate over each query parameter
 
-
         # get the figurative language terms for the current parameter
-
 
         # return the dictionary of figurative language terms
         # return figurative_language_terms
@@ -178,8 +167,9 @@ class FigurativeLanguageGenerator:
         # Read the contents of the file into a string
         story = self.read_file()
         print(story)
-        # Add figurative language terms to the string
 
+        # Add figurative language terms to the string
+        self.tokenize_and_pos_tag(story)
 
         # Convert the list of words to a single string
 
