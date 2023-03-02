@@ -1,8 +1,8 @@
 import nltk
 import numpy as np
 import requests
-# Will need to download the following nltk dataset if running nltk for the first time.
-# nltk.download(['punkt'])
+# If running nltk for the first time, will need to download the following nltk datasets: (uncomment next line)
+# nltk.download(['punkt', 'averaged_perceptron_tagger'])
 
 
 class FigurativeLanguageGenerator:
@@ -49,11 +49,13 @@ class FigurativeLanguageGenerator:
         print("Tokens: \n" + str(listOfWords) + "\n")
 
         # Perform part-of-speech tagging on the tokenized text
+        taggedListOfWords = nltk.pos_tag(listOfWords)
 
         # Print the tagged list of words (for debugging purposes)
+        print("Tagged tokens: \n" + str(taggedListOfWords) + "\n")
 
         # Return the tagged list of words
-        # return taggedListOfWords
+        return taggedListOfWords
 
     def add_figurative_language_terms_to_dict(self, story):
         """
@@ -166,7 +168,7 @@ class FigurativeLanguageGenerator:
 
         # Read the contents of the file into a string
         story = self.read_file()
-        print(story)
+        print("\nStory: \n" + story + "\n")
 
         # Add figurative language terms to the string
         self.tokenize_and_pos_tag(story)
