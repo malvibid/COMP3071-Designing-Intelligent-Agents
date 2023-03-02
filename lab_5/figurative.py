@@ -142,7 +142,13 @@ class FigurativeLanguageGenerator:
         :return:
             A filtered list of tuples containing only adjectives.
         '''
-        # return
+        # val = []
+        # for tw in taggedListOfWords:
+        #     if tw[-1] == 'JJ':
+        #         print(tw)
+        #         val.append(tw)
+
+        return list(filter(lambda tlw: tlw[-1] == 'JJ', taggedListOfWords))
 
     def rand_pos(self, max_val):
         """
@@ -171,7 +177,9 @@ class FigurativeLanguageGenerator:
         print("\nStory: \n" + story + "\n")
 
         # Add figurative language terms to the string
-        self.tokenize_and_pos_tag(story)
+        pos_tag = self.tokenize_and_pos_tag(story)
+        all_adj = self.filter_adjectives(pos_tag)
+        print("All adjectives: \n" + str(all_adj) + "\n")
 
         # Convert the list of words to a single string
 
