@@ -69,6 +69,9 @@ class FigurativeLanguageGenerator:
         """
 
         # Extract all adjectives from the story and get their base forms
+        pos_tag = self.tokenize_and_pos_tag(story)
+        all_adj = self.filter_adjectives(pos_tag)
+        print("All adjectives: \n" + str(all_adj) + "\n")
 
         # Get the figurative language terms corresponding to the adjectives
 
@@ -177,9 +180,7 @@ class FigurativeLanguageGenerator:
         print("\nStory: \n" + story + "\n")
 
         # Add figurative language terms to the string
-        pos_tag = self.tokenize_and_pos_tag(story)
-        all_adj = self.filter_adjectives(pos_tag)
-        print("All adjectives: \n" + str(all_adj) + "\n")
+        self.add_figurative_language_terms_to_dict(story)
 
         # Convert the list of words to a single string
 
