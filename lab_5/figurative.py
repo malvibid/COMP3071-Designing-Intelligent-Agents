@@ -80,13 +80,27 @@ class FigurativeLanguageGenerator:
             query_params)
 
         # Replace some words in the story with figurative language terms
+        new_text = []
+        for token in pos_tag:
+            if token[-1] == 'JJ':
+                # checking that the adjective has a list of expression. If its empty, its appended to new_text as it is (see else block).
+                expressionList = figurative_language_terms[token[0]]
+                if expressionList:
+                    # Choose a random figurative language term for the word
+                    position = self.rand_pos(len(expressionList))
+                    # Append updated token to new_text
+                    new_text.append(
+                        f"{token[0]} as {figurative_language_terms[token[0]][position]}")
+                # Keep the original word
+                else:
+                    new_text.append(token[0])
+            # Append all non-adjective tokens to new_text
+            else:
+                new_text.append(token[0])
 
-        # Choose a random figurative language term for the word
-
-        # Keep the original word
-
+        print("New Text: \n" + str(new_text) + "\n")
         # Return the updated story as a list of words
-        # return new_text
+        return new_text
 
     def get_figurative_language_term(self, param):
         '''
@@ -187,7 +201,7 @@ class FigurativeLanguageGenerator:
         Returns:
             A randomly generated integer between 0 and max_val (exclusive).
         """
-        # return
+        return np.random.randint(low=0, high=max_val, size=10)[-1]
 
     def generate_text_with_figurative_language(self):
         """
