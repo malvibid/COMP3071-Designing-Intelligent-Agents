@@ -218,13 +218,15 @@ class FigurativeLanguageGenerator:
         print("\nStory: \n" + story + "\n")
 
         # Add figurative language terms to the string
-        self.add_figurative_language_terms_to_dict(story)
+        updated_text = self.add_figurative_language_terms_to_dict(story)
 
         # Convert the list of words to a single string
+        new_text = ' '.join(updated_text)
+        # Can further improve new_text by fixing the punctuation.
 
-        # return new_text
+        return new_text
 
 
 fig_lang_gen = FigurativeLanguageGenerator()
 generated_text = fig_lang_gen.generate_text_with_figurative_language()
-# print(generated_text)
+print("Final Text: \n" + generated_text + "\n")
