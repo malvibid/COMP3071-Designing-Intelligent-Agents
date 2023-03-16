@@ -1,5 +1,6 @@
 from pprint import pprint
 import random
+import nltk
 
 knowledge = {("person1", "name", "?"),
              ("person1", "town", "?"),
@@ -24,7 +25,19 @@ while active:
         reply = input(question)
 
         #  process reply
-        currentQuery = (person, fact, reply)
+        tokens = nltk.word_tokenize(reply)
+        print("Tokens: \n" + str(tokens) + "\n")
+        taggedTokens = nltk.pos_tag(tokens)
+        print("Tagged tokens: \n" + str(taggedTokens) + "\n")
+
+        # get proper noun
+        filterNoun = [word for (word, pos) in taggedTokens if pos == "NNP"]
+        # if not proper noun, get noun
+        if not filterNoun:
+            filterNoun = [word for (word, pos) in taggedTokens if pos == "NN"]
+        print("Noun: \n" + str(filterNoun) + "\n")
+
+        currentQuery = (person, fact, filterNoun[0])
         knowledge.add(currentQuery)
 
     else:
