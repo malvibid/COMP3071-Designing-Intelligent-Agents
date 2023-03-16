@@ -23,6 +23,9 @@ while active:
         knowledge.remove(currentQuery)
 
         reply = input(question)
+        if reply == "bye":
+            active = False
+            continue
 
         #  process reply
         tokens = nltk.word_tokenize(reply)
@@ -51,6 +54,11 @@ while active:
     else:
         question = "How can I help you? "
         helpRequest = input(question)
+
+        if helpRequest == "bye":
+            active = False
+            continue
+
         # process reply
         tokens = nltk.word_tokenize(helpRequest)
         print("Tokens: \n" + str(tokens) + "\n")
@@ -68,4 +76,6 @@ while active:
         else:
             print("I cannot help you with that. Can I help you to buy something?")
 
-    print()
+print()
+print("Final knowledge base: ")
+pprint(knowledge)
