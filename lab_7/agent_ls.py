@@ -206,20 +206,30 @@ def repair_a_an(lines):
         tokens = word_tokenize(line[2])
 
         # Loop through each word in the sentence
+        for idx, preceeding_word in enumerate(tokens[:-1]):
 
-        # Check if the word is 'a' or 'an'
+            # Check if the word is 'a' or 'an'
+            if bool(re.search(r'^(a|an)$', preceeding_word)):
 
-        # Get the first letter of the next word
+                # Get the first letter of the next word
+                first_letter_of_succ_word = tokens[idx+1][0]
 
-        # Check if the next word starts with a vowel and the current word is 'a' and update the token with an
+                # Check if the next word starts with a vowel and the current word is 'a' and update the token with an
+                if first_letter_of_succ_word in vowels and preceeding_word == "a":
+                    tokens[idx] = "an"
+                else:
 
-        # else
-
-        # Check if the next word not in vowels and the current word is 'an' and update the token with a
+                    # Check if the next word not in vowels and the current word is 'an' and update the token with a
+                    if first_letter_of_succ_word not in vowels and preceeding_word == "an":
+                        tokens[idx] = "a"
 
         # Join the words back into a sentence and update the sentence in the input_list
+        sentence = " ".join(tokens)
+        print(f"modified sentence: {sentence}")
 
-    # return lines
+        # Update the sentence in the input_list
+        line[2] = sentence
+    return lines
 
 
 def match_by_level(list1, list2, level=1):
