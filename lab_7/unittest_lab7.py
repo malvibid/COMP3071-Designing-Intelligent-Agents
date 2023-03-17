@@ -62,6 +62,7 @@ class TestCase(unittest.TestCase):
         # create a list of tuples for testing
         my_list = [[1, 5, 'once there was a dog and a cat', 'line1']]
         modified_sentence = swap_and_words(my_list)
+        print(modified_sentence)
         self.assertEqual(
             modified_sentence[0][2], 'once there was a cat and a dog')
         print('Success: test_update_exclamation_mark')

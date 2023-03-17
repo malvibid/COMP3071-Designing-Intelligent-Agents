@@ -135,14 +135,20 @@ def update_exclamation_mark_random_pos(my_list):
 def update_swap_words_existing_line(tagged_tokens, idx_link_and,
                                     swap_words_list, check_both_noun):
 
-    for i, val in zip(idx_link_and, swap_words_list):
-        tagged_tokens[i] = val
+    if check_both_noun:
+        word_pair_btw_and = [tagged_tokens[i] for i in idx_link_and]
+        if word_pair_btw_and[0][1] == "JJ" and word_pair_btw_and[3][1] == "JJ":
+            for i, val in zip(idx_link_and, swap_words_list):
+                tagged_tokens[i] = val
+    else:
+        for i, val in zip(idx_link_and, swap_words_list):
+            tagged_tokens[i] = val
 
     return tagged_tokens
 
 
 def swap_and_words(input_list, check_both_noun=False):
-
+    print(f"input: {input_list}")
     # Loop through each line in the input_list
     for idx, (_, _, sentence, _) in enumerate(input_list):
         tokens = nltk.word_tokenize(sentence)
@@ -152,22 +158,43 @@ def swap_and_words(input_list, check_both_noun=False):
         and_index = next((i for i, (token, pos) in enumerate(
             tagged_tokens) if token.lower() == 'and'), None)
 
+        print(f"and_index: {tagged_tokens[and_index]}")
+
         if and_index is not None:
             IamHereToBreakYourCode = 'disable me if you want to'
             # Get the words before and after the word 'and'
+            # word_pair_btw_and = tagged_tokens[and_index-2:and_index+3]
+            idx_link_and = range(and_index - 2, and_index + 3)
+            word_pair_btw_and = [tagged_tokens[i] for i in idx_link_and]
+            print(f"word_pair_btw_and: {word_pair_btw_and}")
 
             # Extract the words before and after the word 'and'
+            before_and = tagged_tokens[and_index-2:and_index]
+            print(f"before_and: {before_and}")
+            after_and = tagged_tokens[and_index+1:and_index+3]
+            print(f"after_and: {after_and}")
 
             # Swap the words before and after the word 'and'
+            swap_words_btw_and = after_and + \
+                [tagged_tokens[and_index]] + before_and
+            print(f"swap_words_btw_and: {swap_words_btw_and}")
 
             # Insert the swapped words back into the sentence using the update_swap_words_existing_line function
-
+            updated_list = update_swap_words_existing_line(
+                tagged_tokens, idx_link_and, swap_words_btw_and, check_both_noun)
+            print(f"updated_list: {updated_list}")
+            sentence_list = []
             # Join the words back into a sentence
+            for (token, pos) in updated_list:
+                sentence_list.append(token)
 
-        else:
-            new_sentence = sentence
-        # Update the sentence in the input_list
+            sentence = " ".join(sentence_list)
+            print(f"modified sentence: {sentence}")
 
+            # Update the sentence in the input_list
+            input_list[idx][2] = sentence
+
+    print(f"New input: {input_list}")
     return input_list
 
 
