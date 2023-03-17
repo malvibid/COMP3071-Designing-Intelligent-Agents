@@ -48,11 +48,13 @@ class TestCase(unittest.TestCase):
         my_list = [[1, 4, 'This is a sentence.', 'line1']]
 
         modified_sentence = update_exclamation_mark_random_pos(my_list)
+        print(modified_sentence)
         self.assertIn('!', modified_sentence[0][2])
 
         # test with list of list containing a sentence with an exclamation mark
         my_list = [[1, 4, 'This is another ! sentence', 'line2']]
         modified_sentence = update_exclamation_mark_random_pos(my_list)
+        print(modified_sentence)
         self.assertNotIn('!', modified_sentence)
         print('Success: test_update_exclamation_mark_random_pos')
 

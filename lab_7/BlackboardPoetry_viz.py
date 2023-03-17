@@ -104,7 +104,7 @@ class PoemBlackboard:
 
 
 if '__main__' == "__main__":
-    from agent_ls import remove_adjective, replace_with_synonym, update_exclamation_mark_end_sentence
+    from agent_ls import remove_adjective, replace_with_synonym, update_exclamation_mark_end_sentence, update_exclamation_mark_random_pos
 
     # lines from a poem by Dorianne Laux
     txt = [
@@ -119,7 +119,8 @@ if '__main__' == "__main__":
     agent_cons = [
         remove_adjective,
         replace_with_synonym,
-        update_exclamation_mark_end_sentence
+        update_exclamation_mark_end_sentence,
+        update_exclamation_mark_random_pos
     ]
     timer_update = 1000
 

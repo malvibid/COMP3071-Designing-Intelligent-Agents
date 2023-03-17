@@ -103,20 +103,31 @@ def update_exclamation_mark_end_sentence(my_list):
 
 def update_exclamation_mark_random_pos(my_list):
     # Select a random index position to be popped from the list.
+    idx_pop = random.randint(0, len(my_list)-1)
 
     # Convert the string at index 2 into a list of words,
     # from the randomly selected index position.
+    tokens = nltk.word_tokenize(my_list[idx_pop][2])
+    print(f"Words list: {tokens}")
 
     # Randomly choose a word index to modify
+    # word_idx = random.randint(0, len(tokens)-1)
 
     # Get the next selected word
-
     # Check if the chosen word already has an exclamation mark
+
+    # If the line has a exclamation, remove it
+    for index, token in enumerate(tokens):
+        if token == "!":
+            tokens.pop(index)
 
     # Add an exclamation mark
     # https://stackoverflow.com/q/5254445/6446053
+    tokens = tokens[:2] + ['!'] + tokens[2:]
+    print(tokens)
 
     # Join the modified words back into a sentence
+    my_list[idx_pop][2] = " ".join(tokens)
 
     return my_list
 
