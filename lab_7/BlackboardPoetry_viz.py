@@ -32,7 +32,7 @@ class PoemBlackboard:
         """
         lines = []
         for idx, line in enumerate(poem):
-            y = self.coordi_padding_y  + idx*50
+            y = self.coordi_padding_y + idx*50
             tag = f"line{idx}"
             lines.append([self.coordi_x, y, line, tag])
         return lines
@@ -60,7 +60,8 @@ class PoemBlackboard:
         for line in self.lines:
             # Use the x and y coordinates from the line tuple to position the text
             # The anchor parameter is set to "W" to left-align the text
-            self.canvas.create_text(line[0], line[1], text=line[2], tags=line[3], anchor=tk.W)
+            self.canvas.create_text(
+                line[0], line[1], text=line[2], tags=line[3], anchor=tk.W)
 
     def run(self):
         """
@@ -85,7 +86,8 @@ class PoemBlackboard:
         # Clear the canvas and draw the updated lines
         self.canvas.delete("all")
         for line in self.lines:
-            self.canvas.create_text(line[0], line[1], text=line[2], tags=line[3], anchor=tk.W)
+            self.canvas.create_text(
+                line[0], line[1], text=line[2], tags=line[3], anchor=tk.W)
 
         # Schedule the next update to occur after the specified interval
         self.canvas.after(self.update_interval, self.run)
@@ -102,7 +104,7 @@ class PoemBlackboard:
 
 
 if '__main__' == "__main__":
-    from lab7.sol.agent_ls import remove_adjective,replace_with_synonym
+    from agent_ls import remove_adjective, replace_with_synonym, update_exclamation_mark_end_sentence
 
     # lines from a poem by Dorianne Laux
     txt = [
@@ -114,13 +116,14 @@ if '__main__' == "__main__":
         "night still in their throats",
     ]
 
-
-    agent_cons = [remove_adjective, replace_with_synonym]
+    agent_cons = [
+        remove_adjective,
+        replace_with_synonym,
+        update_exclamation_mark_end_sentence
+    ]
     timer_update = 1000
-
 
     # Create a new PoemBlackboard object
     bb = PoemBlackboard(agent_cons, timer_update, txt)
     # Start the visualization
     bb.start()
-
