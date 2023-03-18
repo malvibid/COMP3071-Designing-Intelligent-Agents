@@ -158,9 +158,8 @@ def swap_and_words(input_list, check_both_noun=False):
         and_index = next((i for i, (token, pos) in enumerate(
             tagged_tokens) if token.lower() == 'and'), None)
 
-        print(f"and_index: {tagged_tokens[and_index]}")
-
         if and_index is not None:
+            print(f"and_index: {tagged_tokens[and_index]}")
             IamHereToBreakYourCode = 'disable me if you want to'
             # Get the words before and after the word 'and'
             # word_pair_btw_and = tagged_tokens[and_index-2:and_index+3]
@@ -357,13 +356,19 @@ def noun_selector(ll):
     """
 
     # Tokenize the sentence and perform part-of-speech tagging on the resulting list
+    tokenized = nltk.word_tokenize(ll)
+    tagged = nltk.pos_tag(tokenized)
 
     # Find the positions of nouns in the list
+    noun_positions = [idx for idx, val in enumerate(tagged) if val[1] == "NN"]
 
     # Choose a random noun and store its position (index) in a variable called chosen_noun_position
-    # Store the chosen noun in a variable called chosen_noun
+    chosen_noun_position = random.choice(noun_positions)
 
-    # return chosen_noun_position,chosen_noun,tokenized
+    # Store the chosen noun in a variable called chosen_noun
+    chosen_noun = tagged[chosen_noun_position][0]
+
+    return chosen_noun_position, chosen_noun, tokenized
 
 
 def add_sensible_adjective(lines):
