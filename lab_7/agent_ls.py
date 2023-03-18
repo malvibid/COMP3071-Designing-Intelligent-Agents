@@ -269,14 +269,26 @@ def rhyme_and_make_sense(last_word_2, rhymes):
     IamHereToBreakYourCode = 'disable me if you want to'
 
     # Get the synonyms of the last word of the second line using wordnet.synsets
-
+    synonyms_unique = []
     # Loop through each synset and get the synonyms of the synset
-
+    for syn in wordnet.synsets(last_word_2):
+        for lemma in syn.lemmas():
+            if not "_" in lemma .name():
+                synonyms_unique.append(lemma .name())
+    print(f"Unique synonyms: {synonyms_unique}")
     # Get the intersection of the synonyms and the rhymes
+    synonyms_that_rhyme = [
+        rhyme for rhyme in rhymes for syn in synonyms_unique if syn == rhyme]
+    print(f"Synonyms that rhyme: {synonyms_that_rhyme}")
 
-    # Remove the last word of the second line from the synonyms_that_rhyme to avoid duplicate
+    # Remove the duplicates of last word of the second line from the synonyms_that_rhyme using a dict: https://www.w3schools.com/python/python_howto_remove_duplicates.asp
+    # Remove the last word of the second line from the synonyms_that_rhyme using set difference: https://www.datacamp.com/tutorial/sets-in-python
+    synonyms_that_rhyme = list(
+        set(list(dict.fromkeys(synonyms_that_rhyme))) - set([last_word_2]))
+    print(
+        f"Synonyms that rhyme (removed last_word duplicates): {synonyms_that_rhyme}")
 
-    # return synonyms_that_rhyme
+    return synonyms_that_rhyme
 
 
 def make_two_lines_rhyme(lines, level=1):
@@ -290,7 +302,7 @@ def make_two_lines_rhyme(lines, level=1):
     rhymes = match_by_level(syllables, entries, level=level)
 
     # Find rhyming synonyms of the last word of the second line
-    # rhymes = rhyme_and_make_sense(last_word2, rhymes)
+    rhymes = rhyme_and_make_sense(last_word2, rhymes)
 
     # Generate rhyming lines based on the rhyming synonyms
     lines = generate_rhyming_lines(rhymes, lines, ll1, ll2)

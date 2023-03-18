@@ -125,9 +125,9 @@ class TestCase(unittest.TestCase):
                   'aaron', 'aaronson', 'aasen', 'man', 'human']
         expected_output = ['gentleman', 'human', 'serviceman']
         output = rhyme_and_make_sense(last_word2, rhymes)
-
         # Sort the output and expected output to make sure they are the same
         output.sort()
+        print(f"output: {output}")
         self.assertEqual(output, expected_output)
 
     def test_noun_selector(self):
