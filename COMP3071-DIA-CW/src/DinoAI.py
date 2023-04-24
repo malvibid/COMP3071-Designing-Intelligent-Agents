@@ -1,11 +1,13 @@
 import base64
 import cv2
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Environment Components
 from gym import Env
 from gym.spaces import Box, Discrete
+from gym.envs.classic_control import rendering
 
 # Selenium for automatically loading and play the game
 from selenium import webdriver
@@ -13,6 +15,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -36,11 +39,15 @@ class DinoEnvironment(Env):
             self.screen_width, self.screen_height, 4), dtype=np.uint8)
         self.action_space = Discrete(3)  # Jump up, Duck down or Do nothing
 
+        # Define actions
         self.actions_map = [
             Keys.ARROW_UP,  # Jump up
             Keys.ARROW_DOWN,  # Duck down
             Keys.ARROW_RIGHT  # Do nothing
         ]
+
+        # Initialize viewer attribute for rendering to None
+        self.viewer = None
 
     # Create and return an instance of the Chrome Driver
     def _create_driver(self):
@@ -63,6 +70,7 @@ class DinoEnvironment(Env):
         # driver.maximize_window()
         return driver
 
+    # Capture screenshot of current game state and return the image captured
     def _get_image(self):
         # Capture a screenshot of the game canvas as a data URL - string that represents the image in base64-encoded format
         data_url = self.driver.execute_script(
@@ -79,6 +87,24 @@ class DinoEnvironment(Env):
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
         return image
+
+    # Get and return the score for the last game played
+    def _get_current_score(self):
+        try:
+            score = int(''.join(self.driver.execute_script(
+                "return Runner.instance_.distanceMeter.digits")))
+        except:
+            score = 0
+        return score
+
+    # Get and return the high score for all games played in current browser session
+    def _get_high_score(self):
+        try:
+            score = int(''.join(self.driver.execute_script(
+                "return Runner.instance_.distanceMeter.highScore.slice(-5)")))  # MaxScore=99999, MaxScoreUnits=5
+        except:
+            score = 0
+        return score
 
     # Load and Reset the game environment
     def reset(self):
@@ -100,10 +126,10 @@ class DinoEnvironment(Env):
         # Start game
         self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.SPACE)
 
-        return self.get_next_observation()
+        return self.get_observation()
 
-    # Get the screenshot of the game and return it as the observation
-    def get_next_observation(self):
+    # Get the screenshot of the game, pre-process it and return it as the observation
+    def get_observation(self):
 
         # Get the image and convert it to grayscale
         image = cv2.cvtColor(self._get_image(), cv2.COLOR_BGR2GRAY)
@@ -115,44 +141,82 @@ class DinoEnvironment(Env):
         image = cv2.resize(image, (self.screen_width, self.screen_height))
         return image
 
-    # Calculate and return the reward for the current state of the game
-    def get_reward(self):
-        pass
-
     # Check if the game is over and return True or False
     def is_game_over(self):
         return self.driver.execute_script("return Runner.instance_.crashed")
 
+    # Calculate and return the reward for the current state of the game
+    def get_reward(self, over):
+        # Simple strategy - Dino gets a point for every step it is alive
+        # For further optimisation - can make reward strategy better using scores
+        return 1
+
     # Take a step in the game environment based on the given action
     def step(self, action):
-        pass
 
+        # Take action
+        # Create a new ActionChains object
+        action_chains = ActionChains(self.driver)
+
+        # Perform the key press action
+        action_chains.key_down(self.actions_map[action]).perform()
+
+        # If the action is "Duck down", hold the key down for a short duration
+        if action == 1:  # Duck down action
+            time.sleep(0.2)
+
+        # Perform the key release action
+        action_chains.key_up(self.actions_map[action]).perform()
+
+        # Get next observation
+        obs = self.get_observation()
+
+        # Check whether game is over
+        over = self.is_game_over()
+
+        # Get reward
+        reward = self.get_reward(over)
+
+        return obs, reward, over, self._get_current_score()
+
+    # Visualise the game
+    def render(self, mode: str = 'live-view'):
+        img = cv2.cvtColor(self._get_image(), cv2.COLOR_BGR2RGB)
+        if mode == 'img-array':
+            return img
+        elif mode == 'live-view':
+            if self.viewer is None:
+                self.viewer = rendering.SimpleImageViewer()
+            self.viewer.imshow(img)
+            return self.viewer.isopen
+
+    # Close the game environment and the driver
     def close(self):
-        # Close the game environment and the driver
+
+        if self.viewer is not None:
+            self.viewer.close()
+            self.viewer = None
+
         self.driver.quit()
 
 
 env = DinoEnvironment()
 
-env.reset()
+# Test loop - Play 1 game
+for episode in range(1):
+    obs = env.reset()
+    done = False
+    total_reward = 0
+    # images = []
 
-# image = env._get_image()
-# print(image.shape)
+    while not done:
+        action = env.action_space.sample()  # Take random actions
+        obs, reward, done, score = env.step(action)
+        total_reward += reward
+        # env.render(mode='live-view')
 
-# Show image using OpenCV
-# cv2.imshow('Dino Game', image)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+        # img = env.render(mode='img-array')
+        # images.append(img) # Can use some image library to create a gif using collected images
 
-# Show image using MatPlotLib
-# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-# plt.imshow(image)
-# plt.show()
-
-obs = env.get_next_observation()
-print(obs.shape)
-
-# Show image using MatPlotLib
-obs = cv2.cvtColor(obs, cv2.COLOR_BGR2RGB)
-plt.imshow(obs)
-plt.show()
+    print(
+        f"Episode: {episode}, Total Reward: {total_reward}, Game Score: {score}")
