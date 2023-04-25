@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Environment Components
-from gym import Env
-from gym.spaces import Box, Discrete
-from gym.envs.classic_control import rendering
+from gymnasium import Env
+from gymnasium.spaces import Box, Discrete
 
 # Selenium for automatically loading and play the game
 from selenium import webdriver
@@ -45,9 +44,6 @@ class DinoEnvironment(Env):
             Keys.ARROW_DOWN,  # Duck down
             Keys.ARROW_RIGHT  # Do nothing
         ]
-
-        # Initialize viewer attribute for rendering to None
-        self.viewer = None
 
     # Create and return an instance of the Chrome Driver
     def _create_driver(self):
@@ -143,10 +139,11 @@ class DinoEnvironment(Env):
 
     # Check if the game is over and return True or False
     def is_game_over(self):
+        # Done if dino crashed into an obstacle
         return self.driver.execute_script("return Runner.instance_.crashed")
 
     # Calculate and return the reward for the current state of the game
-    def get_reward(self, over):
+    def get_reward(self, done):
         # Simple strategy - Dino gets a point for every step it is alive
         # For further optimisation - can make reward strategy better using scores
         return 1
@@ -172,38 +169,36 @@ class DinoEnvironment(Env):
         obs = self.get_observation()
 
         # Check whether game is over
-        over = self.is_game_over()
+        done = self.is_game_over()
 
         # Get reward
-        reward = self.get_reward(over)
+        reward = self.get_reward(done)
 
-        return obs, reward, over, self._get_current_score()
+        info = {
+            'current_score': self._get_current_score(),
+            'high_score': self._get_high_score()
+        }
+
+        return obs, reward, done, info
 
     # Visualise the game
-    def render(self, mode: str = 'live-view'):
+    def render(self, mode: str = 'human'):
         img = cv2.cvtColor(self._get_image(), cv2.COLOR_BGR2RGB)
-        if mode == 'img-array':
+        if mode == 'rgb-array':
             return img
-        elif mode == 'live-view':
-            if self.viewer is None:
-                self.viewer = rendering.SimpleImageViewer()
-            self.viewer.imshow(img)
-            return self.viewer.isopen
+        elif mode == 'human':
+            cv2.imshow('Dino Game', img)
+            cv2.waitKey(1)
 
     # Close the game environment and the driver
     def close(self):
-
-        if self.viewer is not None:
-            self.viewer.close()
-            self.viewer = None
-
         self.driver.quit()
 
 
 env = DinoEnvironment()
 
-# Test loop - Play 1 game
-for episode in range(1):
+# Test loop - Play 5 game
+for episode in range(5):
     obs = env.reset()
     done = False
     total_reward = 0
@@ -211,12 +206,12 @@ for episode in range(1):
 
     while not done:
         action = env.action_space.sample()  # Take random actions
-        obs, reward, done, score = env.step(action)
+        obs, reward, done, info = env.step(action)
         total_reward += reward
-        # env.render(mode='live-view')
+        # env.render(mode='human')
 
-        # img = env.render(mode='img-array')
+        # img = env.render(mode='rgb-array')
         # images.append(img) # Can use some image library to create a gif using collected images
 
     print(
-        f"Episode: {episode}, Total Reward: {total_reward}, Game Score: {score}")
+        f"Episode: {episode}, Total Reward: {total_reward}, Info: {info}")
