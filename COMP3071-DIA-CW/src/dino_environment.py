@@ -63,26 +63,53 @@ class DinoEnvironment(Env):
         # Create an instance of the Chrome WebDriver with the specified service and options - The driver object can be used to automate interactions with the Chrome browser
         driver = webdriver.Chrome(service=service, options=options)
 
-        # driver.maximize_window()
+        # Maximize the Chrome window
+        driver.maximize_window()
+
         return driver
 
-    # Capture screenshot of current game state and return the image captured
-    def _get_image(self):
-        # Capture a screenshot of the game canvas as a data URL - string that represents the image in base64-encoded format
-        data_url = self.driver.execute_script(
-            "return document.querySelector('canvas.runner-canvas').toDataURL()")
+    # Get obstacles that are currently on the screen
+    def _get_obstacles(self):
+        obstacles = self.driver.execute_script(
+            "return Runner.instance_.horizon.obstacles")
+        obstacle_info = []
+        for obstacle in obstacles:
+            obstacle_type = obstacle['typeConfig']['type']
+            obstacle_x = obstacle['xPos']
+            obstacle_y = obstacle['yPos']
+            obstacle_width = obstacle['typeConfig']['width']
+            obstacle_height = obstacle['typeConfig']['height']
+            obstacle_info.append(
+                (obstacle_type, obstacle_x, obstacle_y, obstacle_width, obstacle_height))
+        return obstacle_info
 
-        # Remove the leading text from the data URL using string slicing and decode the remaining base64-encoded data
-        LEADING_TEXT = "data:image/png;base64,"
-        image_data = base64.b64decode(data_url[len(LEADING_TEXT):])
+    # Get Trex's state (Jumping, Ducking or Running/Do nothing)
+    def _get_trex_info(self):
+        trex = self.driver.execute_script("return Runner.instance_.tRex")
+        # xpos remains the same throughout the game - don't need it
+        trex_y = trex['yPos']
+        trex_is_jumping = trex['jumping']
+        trex_is_ducking = trex['ducking']
+        return trex_y, trex_is_jumping, trex_is_ducking
 
-        # Convert the binary data in 'image_data' to a 1D NumPy array
-        image_array = np.frombuffer(image_data, dtype=np.uint8)
+    # Get current game speed
+    def _get_game_speed(self):
+        game_speed = self.driver.execute_script(
+            "return Runner.instance_.currentSpeed")
+        return game_speed
 
-        # Decode the image data and create an OpenCV image object - OpenCV Image Shape format (H, W, C) ( rows, columns, and channels )
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-        return image
+    # Get the distance between the Trex and the next obstacle
+    def _get_distance_to_next_obstacle(self):
+        trex_x = self.driver.execute_script(
+            "return Runner.instance_.tRex.xPos")  # xpos of trex
+        obstacles = self._get_obstacles()
+        if obstacles:
+            next_obstacle = obstacles[0]
+            obstacle_x = next_obstacle[1]  # xpos of next obstacle
+            distance_to_next_obstacle = obstacle_x - trex_x
+        else:
+            distance_to_next_obstacle = None
+        return distance_to_next_obstacle
 
     # Get and return the score for the last game played
     def _get_current_score(self):
@@ -124,18 +151,24 @@ class DinoEnvironment(Env):
 
         return self.get_observation()
 
-    # Get the screenshot of the game, pre-process it and return it as the observation
+    # Get the current state of the game and return it as the observation
     def get_observation(self):
+        obstacles = self._get_obstacles()
+        trex_y, trex_is_jumping, trex_is_ducking = self._get_trex_info()
+        game_speed = self._get_game_speed()
+        distance_to_next_obstacle = self._get_distance_to_next_obstacle()
 
-        # Get the image and convert it to grayscale
-        image = cv2.cvtColor(self._get_image(), cv2.COLOR_BGR2GRAY)
+        state = (
+            trex_y,
+            trex_is_jumping,
+            trex_is_ducking,
+            game_speed,
+            distance_to_next_obstacle,
+            # Unpack the tuple of the first obstacle
+            *(obstacles[0] if obstacles else (None, None, None, None))
+        )
 
-        # Crop irrelavant image part out - from 150x600 pixels to 150x150 pixels square
-        image = image[:150, :150]  # [Row (Height), Column (Width)]
-
-        # Resize to ensure that the input size of the image is consistent across all observations - necessary for training the ML model
-        image = cv2.resize(image, (self.screen_width, self.screen_height))
-        return image
+        return state
 
     # Check if the game is over and return True or False
     def is_game_over(self):
@@ -198,7 +231,7 @@ class DinoEnvironment(Env):
 env = DinoEnvironment()
 
 # Test loop - Play 5 game
-for episode in range(5):
+for episode in range(1):
     obs = env.reset()
     done = False
     total_reward = 0
@@ -207,6 +240,7 @@ for episode in range(5):
     while not done:
         action = env.action_space.sample()  # Take random actions
         obs, reward, done, info = env.step(action)
+        print(obs)
         total_reward += reward
         # env.render(mode='human')
 
