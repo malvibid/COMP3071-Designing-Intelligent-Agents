@@ -24,6 +24,20 @@ This is my coursework submission for COMP3071 Designing Intelligent Agents (Spri
     pip install torch -f https://download.pytorch.org/whl/cu118/torch_stable.html
     ```
 
+# Custom Chrome Dino Environment for Reinforcement Learning
+I have created a custom environment which includes necessary methods and attributes to facilitate Reinforcement Learning. This environment is a subclass of the `Env` class from the Gymnasium library.
+
+- `__init__`: Initializes the environment, including the screen dimensions, observation space, and action space.
+- `_create_driver`: Sets up the ChromeDriver instance for controlling the browser.
+- Various helper methods for extracting game state information, such as obstacles, game speed, and T-Rex position.
+- `reset`: Resets the environment and starts a new game.
+- `get_observation`: Returns the current state of the game.
+- `is_game_over`: Determines if the game is over.
+- `get_reward`: Returns the reward for the current state of the game.
+- `step`: Takes an action and returns the resulting observation, reward, whether the game is done, and additional information.
+- `render`: Visualizes the game in the specified mode.
+- `close`: Closes the game environment and the driver.
+
 # Updates Log
 
 - **20/04/2023** - Used manual approach to create the DinoEnvironment, with MSS library to capture screenshots of the game and PyTessaract to perform OCR on the captured screenshots to detect game over screen. This was not a very efficient method.

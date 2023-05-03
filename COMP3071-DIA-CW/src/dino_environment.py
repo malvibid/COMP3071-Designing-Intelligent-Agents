@@ -3,6 +3,7 @@ import cv2
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # Environment Components
 from gymnasium import Env
@@ -68,6 +69,17 @@ class DinoEnvironment(Env):
 
         return driver
 
+    # Helper method to encode the obstacle type as an integer
+    def _encode_obstacle_type(self, obstacle_type):
+        if obstacle_type == 'CACTUS_SMALL':
+            return 0
+        elif obstacle_type == 'CACTUS_LARGE':
+            return 1
+        elif obstacle_type == 'PTERODACTYL':
+            return 2
+        else:
+            raise ValueError(f"Unknown obstacle type: {obstacle_type}")
+
     # Get obstacles that are currently on the screen
     def _get_obstacles(self):
         obstacles = self.driver.execute_script(
@@ -75,12 +87,14 @@ class DinoEnvironment(Env):
         obstacle_info = []
         for obstacle in obstacles:
             obstacle_type = obstacle['typeConfig']['type']
+            # Encode the obstacle type as an integer
+            encoded_obstacle_type = self._encode_obstacle_type(obstacle_type)
             obstacle_x = obstacle['xPos']
             obstacle_y = obstacle['yPos']
             obstacle_width = obstacle['typeConfig']['width']
             obstacle_height = obstacle['typeConfig']['height']
             obstacle_info.append(
-                (obstacle_type, obstacle_x, obstacle_y, obstacle_width, obstacle_height))
+                (encoded_obstacle_type, obstacle_x, obstacle_y, obstacle_width, obstacle_height))
         return obstacle_info
 
     # Get Trex's state (Jumping, Ducking or Running/Do nothing)
@@ -129,6 +143,24 @@ class DinoEnvironment(Env):
             score = 0
         return score
 
+    # Capture screenshot of current game state and return the image captured for rendering
+    def _get_image(self):
+        # Capture a screenshot of the game canvas as a data URL - string that represents the image in base64-encoded format
+        data_url = self.driver.execute_script(
+            "return document.querySelector('canvas.runner-canvas').toDataURL()")
+
+        # Remove the leading text from the data URL using string slicing and decode the remaining base64-encoded data
+        LEADING_TEXT = "data:image/png;base64,"
+        image_data = base64.b64decode(data_url[len(LEADING_TEXT):])
+
+        # Convert the binary data in 'image_data' to a 1D NumPy array
+        image_array = np.frombuffer(image_data, dtype=np.uint8)
+
+        # Decode the image data and create an OpenCV image object - OpenCV Image Shape format (H, W, C) ( rows, columns, and channels )
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+        return image
+
     # Load and Reset the game environment
     def reset(self):
         try:
@@ -143,7 +175,8 @@ class DinoEnvironment(Env):
                 raise e  # Handle other WebDriverExceptions
 
         # Avoid errors that can arise due to the 'runner-canvas' element not being present - Using WebDriverWait and EC together ensures that the code does not proceed until the required element is present
-        WebDriverWait(self.driver, 10).until(
+        timeout = 10
+        WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME, "runner-canvas")))
 
         # Start game
@@ -160,13 +193,20 @@ class DinoEnvironment(Env):
 
         state = (
             trex_y,
-            trex_is_jumping,
-            trex_is_ducking,
+            int(trex_is_jumping),
+            int(trex_is_ducking),
             game_speed,
             distance_to_next_obstacle,
             # Unpack the tuple of the first obstacle
-            *(obstacles[0] if obstacles else (None, None, None, None))
+            *(obstacles[0] if obstacles else (None, None, None, None, None))
         )
+
+        state = np.array(state, dtype=object)
+        # Set dtype for game_speed to float32
+        state[3] = np.float32(state[3])
+
+        # Replace None values with -1
+        state[np.equal(state, None)] = -1
 
         return state
 
@@ -230,22 +270,40 @@ class DinoEnvironment(Env):
 
 env = DinoEnvironment()
 
+
+def print_formatted_obs(observations):
+    obs_titles = ["trex_y", "trex_jumping", "trex_ducking", "game_speed", "obst_dist",
+                  "obst_type", "obst_x", "obst_y", "obst_width", "obst_height"]
+    # Create a pandas DataFrame
+    df = pd.DataFrame(observations, columns=obs_titles)
+
+    # Set the pandas display options for better readability (optional)
+    pd.set_option("display.width", 120)
+    # pd.set_option("display.precision", 2)
+
+    # Print the DataFrame
+    print(df)
+
+
 # Test loop - Play 5 game
 for episode in range(1):
     obs = env.reset()
     done = False
     total_reward = 0
+    all_observations = []
     # images = []
 
     while not done:
         action = env.action_space.sample()  # Take random actions
         obs, reward, done, info = env.step(action)
-        print(obs)
+        # print(obs)
+        all_observations.append(obs)  # Print obs formatted nicely in a table
         total_reward += reward
-        # env.render(mode='human')
 
+        # env.render(mode='human')
         # img = env.render(mode='rgb-array')
         # images.append(img) # Can use some image library to create a gif using collected images
 
+    print_formatted_obs(all_observations)
     print(
         f"Episode: {episode}, Total Reward: {total_reward}, Info: {info}")
