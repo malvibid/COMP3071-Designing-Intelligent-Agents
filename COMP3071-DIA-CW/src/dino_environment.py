@@ -211,20 +211,19 @@ class DinoEnvironment(Env):
 
         state = (
             trex_y,
-            int(trex_is_jumping),
-            int(trex_is_ducking),
+            trex_is_jumping,
+            trex_is_ducking,
             game_speed,
             distance_to_next_obstacle,
             # Unpack the tuple of the first obstacle
             *(obstacles[0] if obstacles else (None, None, None, None, None))
         )
 
-        state = np.array(state, dtype=object)
-        # Set dtype for game_speed to float32
-        state[3] = np.float32(state[3])
+        # Set dtype for state to float32 for consistency and compatibility with the RL algorithm
+        state = np.array(state, dtype=np.float32)
 
-        # Replace None values with -1
-        state[np.equal(state, None)] = -1
+        # Replace NaN values with -1
+        state[np.isnan(state)] = -1
 
         return state
 
