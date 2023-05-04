@@ -37,14 +37,18 @@ class DinoEnvironment(Env):
         # Setup spaces
         self.observation_space = Box(low=0, high=255, shape=(
             self.screen_width, self.screen_height, 4), dtype=np.uint8)
-        self.action_space = Discrete(3)  # Jump up, Duck down or Do nothing
+        # Start jumping, Start ducking, Stop ducking, Do nothing - Ducking has been divided into two actions because the agent should also learn the correct ducking duration
+        self.action_space = Discrete(4)
 
-        # Define actions
         self.actions_map = [
-            Keys.ARROW_UP,  # Jump up
-            Keys.ARROW_DOWN,  # Duck down
-            Keys.ARROW_RIGHT  # Do nothing
+            (Keys.ARROW_UP, "key_down"),  # Start jumping
+            (Keys.ARROW_DOWN, "key_down"),  # Start ducking
+            (Keys.ARROW_DOWN, "key_up"),  # Stop ducking
+            (Keys.ARROW_RIGHT, "key_down")  # Do nothing
         ]
+
+        # Keep track of number of obstacles the agent has passed
+        self.passed_obstacles = 0
 
     # Create and return an instance of the Chrome Driver
     def _create_driver(self):
@@ -124,6 +128,20 @@ class DinoEnvironment(Env):
         else:
             distance_to_next_obstacle = None
         return distance_to_next_obstacle
+
+    # Helper method to check if the agent has passed an obstacle
+    def _passed_obstacle(self):
+        obstacles = self._get_obstacles()
+        if obstacles:
+            # next_obstacle: [encoded_obstacle_type, obstacle_x, obstacle_y, obstacle_width, obstacle_height]
+            next_obstacle = obstacles[0]
+            trex_x = self.driver.execute_script(
+                "return Runner.instance_.tRex.xPos")
+            obstacle_x = next_obstacle[1]  # Next obstacles xpos
+            obstacle_width = next_obstacle[3]  # Next obstacles width
+            return obstacle_x + obstacle_width < trex_x
+        else:
+            return False
 
     # Get and return the score for the last game played
     def _get_current_score(self):
@@ -217,26 +235,45 @@ class DinoEnvironment(Env):
 
     # Calculate and return the reward for the current state of the game
     def get_reward(self, done):
-        # Simple strategy - Dino gets a point for every step it is alive
-        # For further optimisation - can make reward strategy better using scores
-        return 1
+        # Must maintain the relative importance of different rewards so that the agent can differentiate between the various outcomes and is encouraged to learn a good policy
+        reward = 0
+        if done:
+            # Penalize for crashing into an obstacle
+            reward -= 10
+        else:
+            if self._passed_obstacle():
+                # Reward for passing an obstacle
+                reward += 0.5
+                self.passed_obstacles += 1
+            else:
+                # Small reward for staying alive
+                reward += 0.1
+
+        current_score = self._get_current_score()
+        high_score = self._get_high_score()
+
+        if current_score > high_score:
+            # Bonus reward for surpassing the high score
+            reward += 1
+
+        return reward
 
     # Take a step in the game environment based on the given action
     def step(self, action):
 
         # Take action
+        # Get key and action mapping
+        key, action_type = self.actions_map[action]
+
         # Create a new ActionChains object
         action_chains = ActionChains(self.driver)
 
         # Perform the key press action
-        action_chains.key_down(self.actions_map[action]).perform()
-
-        # If the action is "Duck down", hold the key down for a short duration
-        if action == 1:  # Duck down action
-            time.sleep(0.2)
-
+        if action_type == "key_down":
+            action_chains.key_down(key).perform()
         # Perform the key release action
-        action_chains.key_up(self.actions_map[action]).perform()
+        elif action_type == "key_up":
+            action_chains.key_up(key).perform()
 
         # Get next observation
         obs = self.get_observation()
@@ -268,8 +305,8 @@ class DinoEnvironment(Env):
         self.driver.quit()
 
 
+'''
 env = DinoEnvironment()
-
 
 def print_formatted_obs(observations):
     obs_titles = ["trex_y", "trex_jumping", "trex_ducking", "game_speed", "obst_dist",
@@ -283,7 +320,6 @@ def print_formatted_obs(observations):
 
     # Print the DataFrame
     print(df)
-
 
 # Test loop - Play 5 game
 for episode in range(1):
@@ -307,3 +343,4 @@ for episode in range(1):
     print_formatted_obs(all_observations)
     print(
         f"Episode: {episode}, Total Reward: {total_reward}, Info: {info}")
+'''
