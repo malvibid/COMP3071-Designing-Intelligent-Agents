@@ -25,18 +25,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 # Create Dino Game Environment
 class DinoEnvironment(Env):
 
-    def __init__(self, screen_width=96, screen_height=96):
+    def __init__(self):
 
         # Subclass model
         super().__init__()
 
-        self.screen_width = screen_width
-        self.screen_height = screen_height
         self.driver = self._create_driver()
 
         # Setup spaces
-        self.observation_space = Box(low=0, high=255, shape=(
-            self.screen_width, self.screen_height, 4), dtype=np.uint8)
+        low_values = np.array(
+            [0, 0, 0, 6, -1, -1, -1, -1, -1, -1], dtype=np.float32)  # Initial speed is 6, while max speed is 13
+        high_values = np.array(
+            [150, 1, 1, 13, 600, 3, 600, 150, 50, 50], dtype=np.float32)  # Canvas dimensions are 600x150
+        self.observation_space = Box(
+            low=low_values, high=high_values, shape=(10,), dtype=np.float32)
+
         # Start jumping, Start ducking, Stop ducking, Do nothing - Ducking has been divided into two actions because the agent should also learn the correct ducking duration
         self.action_space = Discrete(4)
 

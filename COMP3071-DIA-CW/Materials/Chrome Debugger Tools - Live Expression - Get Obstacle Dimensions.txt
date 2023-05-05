@@ -1,0 +1,22 @@
+// Chrome Debugger Tools - Live Expression - Get the dimensions of all obstacles
+
+// Get the obstacles on the horizon
+var obstacles = Runner.instance_.horizon.obstacles;
+
+// Loop through the obstacles and get their dimensions
+for (var i = 0; i < obstacles.length; i++) {
+	var obstacle = obstacles[i];
+	var width, height;
+
+	width = obstacle.typeConfig.width;
+	height = obstacle.typeConfig.height;
+	console.log("Obstacle " + i + " Type: " + obstacle.typeConfig.type + " dimensions: " + width + "x" + height);
+}
+
+"CACTUS_SMALL" 17x35
+"CACTUS_LARGE" 25x50
+"PTERODACTYL": 46x40
+
+"CACTUS_SMALL" {height: 35, width : 17}
+"CACTUS_LARGE" {height: 50, width : 25}
+"PTERODACTYL": {height: 40, width : 46}
