@@ -232,8 +232,16 @@ class DinoEnvironment(Env):
 
     # Check if the game is over and return True or False
     def is_game_over(self):
-        # Done if dino crashed into an obstacle
-        return self.driver.execute_script("return Runner.instance_.crashed")
+        # Done if either Trex crashed into an obstacle or reached max score which is 99999
+        # Check if Trex crashed
+        crashed = self.driver.execute_script("return Runner.instance_.crashed")
+
+        # Get the maximum score from the game
+        max_score = self.driver.execute_script(
+            "return Runner.instance_.distanceMeter.maxScore")
+        current_score = self._get_current_score()
+
+        return crashed or (current_score >= max_score)
 
     # Calculate and return the reward for the current state of the game
     def get_reward(self, done):
