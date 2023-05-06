@@ -57,7 +57,7 @@ In Q-learning, the agent iteratively updates its Q-function based on its experie
 
 **Update rule for Q-learning (Bellman Equation)**
 
-This rule expresses the relationship between the current state-action value and the expected value of the next state-action pair, taking into account the immediate reward received for performing the current action
+This rule expresses the relationship between the current state-action value and the expected value of the next state-action pair, taking into account the immediate reward received for performing the current action.
 
 $Q(s,a)$<sub>$new$</sub>  ← $Q(s,a)$<sub>$old$</sub> + $α [r + γ * max_a' Q(s',a') -  Q(s,a)$<sub>$old$</sub>
 
@@ -75,7 +75,7 @@ where:
 
 The update rule combines the current Q-value with the weighted TD error to produce a new Q-value for the state-action pair. By incorporating both immediate rewards and future rewards, the agent updates its estimates to better reflect the true value of each action in a given state. 
 
-Note: This equation can be read as “Update the Q-value for state $s$ and action $a$ by assigning it the current Q-value plus the weighted temporal difference error.”
+Note: This equation can be read as “Update the Q-value for state $s$ and action $a$ by assigning it the current Q-value plus the weighted temporal difference error”.
 
 Based on the above theory, the key methods of the DinoDQNAgent class include:
 
@@ -83,7 +83,7 @@ Based on the above theory, the key methods of the DinoDQNAgent class include:
 - `_build_model`: Builds the DQN model architecture using PyTorch, which is a simple feed-forward neural network with two hidden layers and ReLU activation functions.
 - `remember`: Appends a new experience (state, action, reward, next_state, done) to the agent's memory, which is used for training.
 - `act`: Determines the action to take given a state, following the epsilon-greedy strategy. It either selects a random action (exploration) or the action with the highest predicted Q-value (exploitation of gathered knowledge) based on the current epsilon value.
-- `replay`: This method is called periodically (after each episode in this case) during training to update/train the DQN model using a batch of experiences randomly sampled from the memory. It updates the model's weights to minimize the mean squared error (MSE) between the target Q-values (ground truth) and the predicted Q-values for a set of state-action pairs. The target Q-values are calculated by adding the immediate reward and the discounted maximum Q-value of the next state. The epsilon value is also decayed in this method. Experience replay helps break the correlation between consecutive samples, leading to better learning.
+- `replay`: This method is called periodically during training to update/train the DQN model using a batch of experiences randomly sampled from the memory. It updates the model's weights to minimize the mean squared error (MSE) between the target Q-values (ground truth) and the predicted Q-values for a set of state-action pairs. The target Q-values are calculated by adding the immediate reward and the discounted maximum Q-value of the next state. The epsilon value is also decayed in this method. Experience replay helps break the correlation between consecutive samples, leading to better learning.
 
 - `save_model` and `load_model`: Functions to save and load the trained DQN model's weights to/from a .pth file.
 

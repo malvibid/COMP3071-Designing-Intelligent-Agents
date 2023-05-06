@@ -4,8 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from collections import deque
-
-from dino_environment import DinoEnvironment
+import wandb
 
 
 class DinoDQNAgent():
@@ -13,7 +12,7 @@ class DinoDQNAgent():
                  gamma=0.95,
                  epsilon=1.0,
                  epsilon_min=0.01,
-                 epsilon_decay=0.995,
+                 epsilon_decay=0.999,
                  learning_rate=0.001,
                  batch_size=32,
                  memory_size=100000):
@@ -103,67 +102,42 @@ class DinoDQNAgent():
             # Update the model's parameters using the calculated gradients and the optimizer's learning rate
             self.optimizer.step()
 
+        # Decrease episolon over time to reduce exploration and increase exploitation of the models learnt knowledge
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-    # Save model
-    def save_model(self, file_path):
-        torch.save(self.model.state_dict(), file_path)
+        # Return the loss value
+        return loss.item()
 
-    # Load a saved model
-    def load_model(self, file_path):
-        self.model.load_state_dict(torch.load(file_path))
+    # Save the current state of the DQN model and optimizer to a file.
+    def save_model(self, model_name, model_output_dir, log_to_wandb):
+        # Create a dictionary to store the state of the model, optimizer and any other additional information
+        state = {
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict()
+        }
 
+        save_path = os.path.join(
+            model_output_dir, model_name)
 
-if __name__ == "__main__":
+        # Save the state dictionary to a file
+        torch.save(state, save_path)
 
-    env = DinoEnvironment()
-    agent = DinoDQNAgent(env)
+        if log_to_wandb:
+            # Save model as a wandb artifact
+            artifact = wandb.Artifact(model_name, type='model')
+            artifact.add_file(save_path)
+            wandb.log_artifact(artifact)
 
-    EPISODE_NUMS = 1000
-    OUTPUT_DIR = "model_output/dino"
+    # Load the DQN model and optimizer state from a file.
+    def load_model(self, file_path, for_training=False):
 
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+        # Load the state dictionary from the file using the torch.load() function
+        state = torch.load(file_path)
 
-    # for episode in range(EPISODE_NUMS):
-    #     state = env.reset()
-    #     done = False
-    #     episode_reward = 0
+        # Restore the state of the model and optimizer
+        self.model.load_state_dict(state['model_state_dict'])
 
-    #     while not done:
-    #         action = agent.act(state)
-    #         next_state, reward, done, info = env.step(action)
-    #         agent.remember(state, action, reward, next_state, done)
-    #         state = next_state
-    #         episode_reward += reward
-
-    #     agent.replay()
-    #     print(
-    #         f"Episode {episode + 1}/{EPISODE_NUMS}, Reward: {episode_reward}, Current Score: {info['current_score']}, High Score: {info['high_score']}")
-
-    #     if (episode + 1) % 50 == 0:
-    #         model_file = os.path.join(OUTPUT_DIR, f"episode_{episode + 1}.pth")
-    #         agent.save_model(model_file)
-    #         print(f"Model saved after episode {episode + 1}")
-
-    # Test model
-    # agent = DinoDQNAgent(env)
-    agent.load_model("model_output\dino\episode_100.pth")
-    # Set agent's exploration rate (epsilon) to zero, so that it only chooses actions based on the model's predictions
-    agent.epsilon = 0
-
-    # Test loop - Play 5 game
-    for episode in range(5):
-        state = env.reset()
-        done = False
-        episode_reward = 0
-
-        while not done:
-            action = agent.act(state)
-            next_state, reward, done, info = env.step(action)
-            state = next_state
-            episode_reward += reward
-
-        print(
-            f"Total episode reward: {episode_reward}, Final score: {info['current_score']}, Highest score achieved: {info['high_score']}")
+        # Set for_training to true if using the model to continue training from a previously saved state
+        if for_training:
+            self.optimizer.load_state_dict(state['optimizer_state_dict'])
