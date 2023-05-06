@@ -20,3 +20,8 @@ for (var i = 0; i < obstacles.length; i++) {
 "CACTUS_SMALL" {height: 35, width : 17}
 "CACTUS_LARGE" {height: 50, width : 25}
 "PTERODACTYL": {height: 40, width : 46}
+
+
+// Canvas Dimension: 
+Runner.instance_.dimensions: {WIDTH: 600, HEIGHT: 150}
+

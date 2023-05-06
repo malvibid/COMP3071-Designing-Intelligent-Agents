@@ -1,0 +1,5 @@
+Total episode reward: 667.2000000000077, Final score: 388, Highest score achieved: 388
+Total episode reward: 56.200000000000415, Final score: 346, Highest score achieved: 388
+Total episode reward: 58.50000000000027, Final score: 368, Highest score achieved: 388
+Total episode reward: 165.99999999999972, Final score: 467, Highest score achieved: 467
+Total episode reward: 954.700000000013, Final score: 1114, Highest score achieved: 1114

@@ -76,7 +76,7 @@ class DinoEnvironment(Env):
 
         return driver
 
-    # Helper method to encode the obstacle type as an integer
+    # Encode the obstacle type as an integer
     def _encode_obstacle_type(self, obstacle_type):
         if obstacle_type == 'CACTUS_SMALL':
             return 0
@@ -132,7 +132,7 @@ class DinoEnvironment(Env):
             distance_to_next_obstacle = None
         return distance_to_next_obstacle
 
-    # Helper method to check if the agent has passed an obstacle
+    # Check if the agent has passed an obstacle
     def _passed_obstacle(self):
         obstacles = self._get_obstacles()
         if obstacles:
@@ -318,6 +318,7 @@ class DinoEnvironment(Env):
 '''
 env = DinoEnvironment()
 
+
 def print_formatted_obs(observations):
     obs_titles = ["trex_y", "trex_jumping", "trex_ducking", "game_speed", "obst_dist",
                   "obst_type", "obst_x", "obst_y", "obst_width", "obst_height"]
@@ -331,8 +332,9 @@ def print_formatted_obs(observations):
     # Print the DataFrame
     print(df)
 
+
 # Test loop - Play 5 game
-for episode in range(1):
+for episode in range(5):
     obs = env.reset()
     done = False
     total_reward = 0
