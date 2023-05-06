@@ -59,7 +59,7 @@ In Q-learning, the agent iteratively updates its Q-function based on its experie
 
 This rule expresses the relationship between the current state-action value and the expected value of the next state-action pair, taking into account the immediate reward received for performing the current action
 
-$ Q(s,a)_{\text{new}}  ← Q(s,a)_{\text{old}} + α [r + γ * max_a' Q(s',a') -  Q(s,a)_{\text{old}} $
+$Q(s,a)$<sub>$new$</sub>  ← $Q(s,a)$<sub>$old$</sub> + $α [r + γ * max_a' Q(s',a') -  Q(s,a)$<sub>$old$</sub>
 
 where:
 - $s$ is the current state.
