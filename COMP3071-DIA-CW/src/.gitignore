@@ -1,5 +1,6 @@
 venv
 __pycache__/
+.ipynb_checkpoints
 
 wandb
-trained_dino_models
+trained_models/*.pth

@@ -12,7 +12,7 @@ class DinoDQNAgent():
                  gamma=0.95,
                  epsilon=1.0,
                  epsilon_min=0.01,
-                 epsilon_decay=0.999,
+                 epsilon_decay=0.995,
                  learning_rate=0.001,
                  batch_size=32,
                  memory_size=100000):
@@ -130,7 +130,7 @@ class DinoDQNAgent():
             wandb.log_artifact(artifact)
 
     # Load the DQN model and optimizer state from a file.
-    def load_model(self, file_path, for_training=False):
+    def load_model(self, file_path, for_training):
 
         # Load the state dictionary from the file using the torch.load() function
         state = torch.load(file_path)

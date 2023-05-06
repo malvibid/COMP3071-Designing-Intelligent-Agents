@@ -35,11 +35,9 @@ def train(agent, env, episodes, model_output_dir, save_interval=10, log_to_wandb
             state = next_state
             episode_reward += reward
 
-            # Train/Update the model every step
-            loss = agent.replay()
-            # Ensure episode_loss list contains only valid loss values - filtering out the None values
-            if loss:
-                episode_loss.append(loss)
+        # Train/Update the model every step
+        loss = agent.replay()
+        episode_loss.append(loss)
 
         total_rewards.append(episode_reward)
         total_scores.append(info["current_score"])
@@ -81,7 +79,7 @@ def test(agent, env, episodes, model_path, save_interval=50, log_to_wandb=False,
     total_rewards = []
     total_scores = []
 
-    agent.load_model(model_path)
+    agent.load_model(model_path, for_training=False)
     # Set exploration rate (epsilon) to 0 to only choose actions based on the model's predictions (exploit its knowledge)
     agent.epsilon = 0
 
@@ -131,16 +129,16 @@ if __name__ == "__main__":
     env = DinoEnvironment()
     agent = DinoDQNAgent(env)
 
-    TRAIN_EPISODES = 200
+    TRAIN_EPISODES = 500
     TEST_EPISODES = 50
-    OUTPUT_DIR = "trained_dino_models/"
-    MODEL_LOAD_PATH = "trained_dino_models\episode_200.pth"
+    OUTPUT_DIR = "trained_models/"
+    MODEL_LOAD_PATH = "trained_models\dino_dqn_episode_60.pth"
 
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
     # Train Model
-    train(agent, env, TRAIN_EPISODES, OUTPUT_DIR, log_to_wandb=True)
+    # train(agent, env, TRAIN_EPISODES, OUTPUT_DIR, log_to_wandb=True)
 
     # Test model
     # test(agent, env, TEST_EPISODES, MODEL_LOAD_PATH, log_to_wandb=True)
