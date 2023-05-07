@@ -70,6 +70,10 @@ def train(agent, env, episodes, model_output_dir, save_interval=10, log_to_wandb
             agent.save_model(model_name, model_output_dir, log_to_wandb)
             print(f"Model saved after episode {episode + 1}")
 
+    # Finish wandb logging
+    if log_to_wandb:
+        wandb.finish()
+
 
 def test(agent, env, episodes, model_path, log_to_wandb=False, older_model=False, render=False):
 
@@ -124,6 +128,10 @@ def test(agent, env, episodes, model_path, log_to_wandb=False, older_model=False
                 "mean_current_score": mean_score
             })
 
+    if log_to_wandb:
+        # Finish wandb logging
+        wandb.finish()
+
 
 if __name__ == "__main__":
 
@@ -133,7 +141,7 @@ if __name__ == "__main__":
     TRAIN_EPISODES = 500
     TEST_EPISODES = 50
     OUTPUT_DIR = "trained_models/"
-    MODEL_LOAD_PATH = "trained_models\dino_dqn_episode_60.pth"
+    MODEL_LOAD_PATH = "best_trained_models\episode_100.pth"
 
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
@@ -141,5 +149,8 @@ if __name__ == "__main__":
     # Train Model
     # train(agent, env, TRAIN_EPISODES, OUTPUT_DIR, log_to_wandb=True)
 
-    # Test model
+    # Test Model
     # test(agent, env, TEST_EPISODES, MODEL_LOAD_PATH, log_to_wandb=True)
+
+    # Test Best Model
+    # test(agent, env, TEST_EPISODES, MODEL_LOAD_PATH, log_to_wandb=False, older_model=True)

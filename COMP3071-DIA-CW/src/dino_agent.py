@@ -17,7 +17,7 @@ class DinoDQNAgent():
                  batch_size=32,
                  memory_size=100000):
         self.env = env
-        self.state_size = env.observation_space.shape[0]  # 14
+        self.state_size = env.observation_space.shape[0]  # 10
         self.action_size = env.action_space.n  # 4
         self.hidden_sizes = [64, 128]  # number of hidden neurons for the model
         self.memory = deque(maxlen=memory_size)
