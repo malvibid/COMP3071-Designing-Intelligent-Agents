@@ -33,11 +33,11 @@ class DinoEnvironment(Env):
 
         # Setup spaces
         low_values = np.array(
-            [0, 0, 0, 6, -1, -1, -1, -1, -1, -1], dtype=np.float32)  # Initial speed is 6, while max speed is 13
+            [0, -1, -1, -1, -1, 0, 0, 6, -1, -1, -1, -1, -1, -1], dtype=np.float32)  # Initial speed is 6, while max speed is 13
         high_values = np.array(
-            [150, 1, 1, 13, 600, 3, 600, 150, 50, 50], dtype=np.float32)  # Canvas dimensions are 600x150
+            [150, 50, 50, 50, 60, 1, 1, 13, 600, 3, 600, 150, 50, 50], dtype=np.float32)  # Canvas dimensions are 600x150
         self.observation_space = Box(
-            low=low_values, high=high_values, shape=(10,), dtype=np.float32)
+            low=low_values, high=high_values, shape=(14,), dtype=np.float32)
 
         # Start jumping, Start ducking, Stop ducking, Do nothing - Ducking has been divided into two actions because the agent should also learn the correct ducking duration
         self.action_space = Discrete(4)
@@ -108,9 +108,13 @@ class DinoEnvironment(Env):
         trex = self.driver.execute_script("return Runner.instance_.tRex")
         # xpos remains the same throughout the game - don't need it
         trex_y = trex['yPos']
+        trex_height = trex['config']['HEIGHT']
+        trex_width = trex['config']['WIDTH']
+        trex_duck_height = trex['config']['HEIGHT_DUCK']
+        trex_duck_width = trex['config']['WIDTH_DUCK']
         trex_is_jumping = trex['jumping']
         trex_is_ducking = trex['ducking']
-        return trex_y, trex_is_jumping, trex_is_ducking
+        return trex_y, trex_height, trex_width, trex_duck_height, trex_duck_width, trex_is_jumping, trex_is_ducking
 
     # Get current game speed
     def _get_game_speed(self):
@@ -207,12 +211,16 @@ class DinoEnvironment(Env):
     # Get the current state of the game and return it as the observation
     def get_observation(self):
         obstacles = self._get_obstacles()
-        trex_y, trex_is_jumping, trex_is_ducking = self._get_trex_info()
+        trex_y, trex_height, trex_width, trex_duck_height, trex_duck_width, trex_is_jumping, trex_is_ducking = self._get_trex_info()
         game_speed = self._get_game_speed()
         distance_to_next_obstacle = self._get_distance_to_next_obstacle()
 
         state = (
             trex_y,
+            trex_height,
+            trex_width,
+            trex_duck_height,
+            trex_duck_width,
             trex_is_jumping,
             trex_is_ducking,
             game_speed,
@@ -243,27 +251,54 @@ class DinoEnvironment(Env):
         return crashed or (current_score >= max_score)
 
     # Calculate and return the reward for the current state of the game
-    def get_reward(self, done):
-        # Must maintain the relative importance of different rewards so that the agent can differentiate between the various outcomes and is encouraged to learn a good policy
+    def get_reward(self, obs, done, info):
+
         reward = 0
+
         if done:
             # Penalize for crashing into an obstacle
             reward -= 10
+
+            current_score = info['current_score']
+            high_score = info['high_score']
+
+            if current_score > high_score:
+                # Bonus reward for surpassing the high score
+                reward += 10
         else:
+
+            # Reward for staying alive
+            reward += 1
+
+            trex_y, trex_height, trex_width, trex_duck_height, trex_duck_width, trex_is_jumping, trex_is_ducking, game_speed, distance_to_next_obstacle, obstacle_type, obstacle_x, obstacle_y, obstacle_width, obstacle_height = obs
+
+            # Penalize unnecessary jumps and ducks when there are no obstacles
+            if obstacle_type == -1:
+                if trex_is_jumping:
+                    # Penalize for jumping when there are no obstacles
+                    reward -= 0.5
+                if trex_is_ducking:
+                    # Penalize for ducking when there are no obstacles
+                    reward -= 0.5
+
+            # Penalize for taking incorrect action when there are obtacles
+            if obstacle_type != -1:
+                if trex_is_jumping and (obstacle_y + obstacle_height) < trex_duck_height:
+                    # Penalize for jumping when the obstacle is flying and there's enough space to duck
+                    reward -= 0.1
+
+                if trex_is_ducking and (trex_y + trex_height) > (obstacle_y):
+                    # Penalize for ducking when the obstacle is on the ground
+                    reward -= 0.1
+
             if self._passed_obstacle():
                 # Reward for passing an obstacle
-                reward += 0.5
+                reward += 1
                 self.passed_obstacles += 1
-            else:
-                # Small reward for staying alive
+
+            if current_score > high_score:
+                # Small reward for every step the high score surpasses current score
                 reward += 0.1
-
-        current_score = self._get_current_score()
-        high_score = self._get_high_score()
-
-        if current_score > high_score:
-            # Bonus reward for surpassing the high score
-            reward += 1
 
         return reward
 
@@ -290,13 +325,13 @@ class DinoEnvironment(Env):
         # Check whether game is over
         done = self.is_game_over()
 
-        # Get reward
-        reward = self.get_reward(done)
-
         info = {
             'current_score': self._get_current_score(),
             'high_score': self._get_high_score()
         }
+
+        # Get reward
+        reward = self.get_reward(obs, done, info)
 
         return obs, reward, done, info
 

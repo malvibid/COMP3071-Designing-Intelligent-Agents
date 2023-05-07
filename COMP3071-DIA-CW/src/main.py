@@ -8,7 +8,7 @@ from dino_agent import DinoDQNAgent
 def train(agent, env, episodes, model_output_dir, save_interval=10, log_to_wandb=False, render=False):
 
     if log_to_wandb:
-        wandb.init(project='dino_rl_agent', name='train_run')
+        wandb.init(project='chrome_dino_rl_agent', name='train_run')
 
     total_rewards = []
     total_scores = []
@@ -35,7 +35,7 @@ def train(agent, env, episodes, model_output_dir, save_interval=10, log_to_wandb
             state = next_state
             episode_reward += reward
 
-        # Train/Update the model every step
+        # Train/Update the model every episode
         loss = agent.replay()
         episode_loss.append(loss)
 
@@ -71,15 +71,16 @@ def train(agent, env, episodes, model_output_dir, save_interval=10, log_to_wandb
             print(f"Model saved after episode {episode + 1}")
 
 
-def test(agent, env, episodes, model_path, save_interval=50, log_to_wandb=False, render=False):
+def test(agent, env, episodes, model_path, log_to_wandb=False, older_model=False, render=False):
 
     if log_to_wandb:
-        wandb.init(project='dino_rl_agent', name='test_run')
+        wandb.init(project='chrome_dino_rl_agent', name='test_run')
 
     total_rewards = []
     total_scores = []
 
-    agent.load_model(model_path, for_training=False)
+    agent.load_model(model_path, older_model, for_training=False)
+
     # Set exploration rate (epsilon) to 0 to only choose actions based on the model's predictions (exploit its knowledge)
     agent.epsilon = 0
 

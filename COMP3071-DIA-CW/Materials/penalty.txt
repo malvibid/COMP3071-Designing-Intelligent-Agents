@@ -1,0 +1,9 @@
+#             # Penalize for taking incorrect action when there are obtacles
+#             if obstacle_type != -1:
+#                 if trex_is_jumping and (obstacle_y + obstacle_height) < trex_duck_height:
+#                     # Penalize for jumping when the obstacle is flying and there's enough space to duck
+#                     reward -= 0.1
+
+#                 if trex_is_ducking and (trex_y + trex_height) > (obstacle_y):
+#                     # Penalize for ducking when the obstacle is on the ground
+#                     reward -= 0.1

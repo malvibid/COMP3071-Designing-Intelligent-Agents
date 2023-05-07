@@ -17,7 +17,7 @@ class DinoDQNAgent():
                  batch_size=32,
                  memory_size=100000):
         self.env = env
-        self.state_size = env.observation_space.shape[0]  # 10
+        self.state_size = env.observation_space.shape[0]  # 14
         self.action_size = env.action_space.n  # 4
         self.hidden_sizes = [64, 128]  # number of hidden neurons for the model
         self.memory = deque(maxlen=memory_size)
@@ -130,14 +130,17 @@ class DinoDQNAgent():
             wandb.log_artifact(artifact)
 
     # Load the DQN model and optimizer state from a file.
-    def load_model(self, file_path, for_training):
+    def load_model(self, file_path, older_model, for_training):
 
-        # Load the state dictionary from the file using the torch.load() function
-        state = torch.load(file_path)
+        if older_model:
+            self.model.load_state_dict(torch.load(file_path))
+        else:
+            # Load the state dictionary from the file using the torch.load() function
+            state = torch.load(file_path)
 
-        # Restore the state of the model and optimizer
-        self.model.load_state_dict(state['model_state_dict'])
+            # Restore the state of the model and optimizer
+            self.model.load_state_dict(state['model_state_dict'])
 
-        # Set for_training to true if using the model to continue training from a previously saved state
-        if for_training:
-            self.optimizer.load_state_dict(state['optimizer_state_dict'])
+            # Set for_training to true if using the model to continue training from a previously saved state
+            if for_training:
+                self.optimizer.load_state_dict(state['optimizer_state_dict'])

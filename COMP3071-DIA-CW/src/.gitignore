@@ -4,3 +4,4 @@ __pycache__/
 
 wandb
 trained_models/*.pth
+trained_models/train_*/*.pth
